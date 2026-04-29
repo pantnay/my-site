@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ростов Холдинг – Строительные блоки и материалы</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* все стили без изменений */
+        :root {
+            --red: #d8232a;
+            --dark: #222;
+            --light: #f5f5f5;
+            --white: #fff;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #fafafa; color: #333; line-height: 1.6; }
+        a { text-decoration: none; color: inherit; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        .header { background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .header-inner { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; flex-wrap: wrap; }
+        .logo { font-size: 26px; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+        .logo span { color: var(--red); }
+        .header-phone { font-size: 20px; font-weight: 600; color: var(--dark); }
+        .header-phone a { color: var(--red); text-decoration: none; }
+        .header-phone small { display: block; font-size: 13px; font-weight: 400; color: #666; }
+
+        .banner-section { background: #f0f0f0; padding: 20px 0; }
+        .banner-slider { position: relative; overflow: hidden; border-radius: 16px; box-shadow: var(--shadow); background: #fff; }
+        .banner-slide { display: none; padding: 30px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .banner-slide.active { display: flex; }
+        .banner-content { flex: 1; min-width: 250px; }
+        .banner-content h2 { font-size: 32px; margin-bottom: 10px; }
+        .banner-content .old-price { text-decoration: line-through; color: #888; font-size: 18px; }
+        .banner-content .new-price { font-size: 36px; font-weight: 700; color: var(--red); margin: 10px 0; }
+        .sticker { background: var(--red); color: #fff; display: inline-block; padding: 6px 18px; border-radius: 30px; font-weight: 600; }
+        .banner-img-wrap { position: relative; display: inline-block; max-width: 250px; width: 100%; text-align: center; }
+        .banner-img-wrap img { max-width: 100%; max-height: 200px; object-fit: contain; display: block; margin: 0 auto; }
+        .banner-price-badge { position: absolute; top: -10px; right: -10px; background: #d8232a; color: #fff; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; box-shadow: 0 4px 12px rgba(216,35,42,0.4); transform: rotate(10deg); border: 2px solid #fff; }
+        .slider-dots { display: flex; justify-content: center; margin-top: 15px; gap: 10px; }
+        .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; cursor: pointer; }
+        .dot.active { background: var(--red); }
+
+        .catalog { padding: 50px 0; }
+        .section-title { font-size: 30px; font-weight: 700; text-align: center; margin-bottom: 30px; }
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
+        .catalog-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); transition: transform 0.2s; cursor: pointer; display: flex; flex-direction: column; }
+        .catalog-card:hover { transform: translateY(-5px); }
+        .catalog-card img { width: 100%; height: 200px; object-fit: cover; background: #f0f0f0; }
+        .catalog-card-body { padding: 20px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .catalog-card-body h3 { font-size: 20px; margin-bottom: 8px; }
+        .catalog-card-body .price { font-size: 22px; font-weight: 700; color: var(--red); margin-bottom: 10px; }
+        .catalog-card-body .price .old { text-decoration: line-through; color: #999; font-size: 16px; margin-right: 8px; }
+        .btn { background: var(--red); color: #fff; border: none; padding: 10px 24px; border-radius: 30px; font-size: 16px; cursor: pointer; display: inline-block; transition: 0.2s; }
+        .btn:hover { background: #c41e24; }
+
+        .about { background: #fff; padding: 60px 0; }
+        .advantages { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px; }
+        .advantage-card { text-align: center; padding: 25px; background: #f9f9f9; border-radius: 16px; }
+        .advantage-card img { width: 64px; margin-bottom: 15px; }
+
+        .reviews { padding: 60px 0; background: #f5f5f5; }
+        .review-grid { display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; }
+        .review-card { background: #fff; padding: 25px; border-radius: 16px; box-shadow: var(--shadow); width: 300px; }
+        .review-card .author { font-weight: 600; margin-top: 10px; }
+        .video-reviews { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 30px; }
+        .video-card { width: 350px; }
+
+        .map-section { padding: 60px 0; }
+        #map { height: 450px; border-radius: 16px; box-shadow: var(--shadow); }
+
+        .footer { background: #222; color: #ddd; padding: 40px 0; text-align: center; }
+        .footer a { color: #fff; }
+        .popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); padding: 30px; z-index: 200; display: none; width: 90%; max-width: 450px; }
+        .popup.active { display: block; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
+        .overlay.active { display: block; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; }
+
+        .floating-btn { position: fixed; right: 25px; bottom: 25px; background: var(--red); color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); cursor: pointer; z-index: 90; transition: 0.3s; }
+        .floating-btn:hover { transform: scale(1.1); }
+        .floating-options { position: fixed; right: 25px; bottom: 95px; display: flex; flex-direction: column; gap: 12px; z-index: 89; }
+        .floating-options a { background: #fff; color: #333; padding: 12px 18px; border-radius: 30px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <div class="logo">Ростов<span>Холдинг</span></div>
+            <div class="header-phone"><a href="tel:+78005553535">8 800 555-35-35</a><small>Звонок бесплатный</small></div>
+        </div>
+    </header>
+
+    <section class="banner-section">
+        <div class="container">
+            <div class="banner-slider" id="bannerSlider"></div>
+            <div class="slider-dots" id="bannerDots"></div>
+        </div>
+    </section>
+
+    <section class="catalog">
+        <div class="container">
+            <h2 class="section-title">Наша продукция</h2>
+            <div class="catalog-grid" id="catalogGrid"></div>
+        </div>
+    </section>
+
+    <section class="about">
+        <div class="container">
+            <h2 class="section-title">О компании</h2>
+            <p style="max-width:800px;margin:0 auto;text-align:center;font-size:18px;">Холдинг «Ростов» – надёжный поставщик строительных материалов с 20-летним опытом. Мы предлагаем только сертифицированную продукцию, обеспечиваем доставку и разгрузку на объекте, всегда на связи и гарантируем лучшие цены на рынке.</p>
+            <div class="advantages">
+                <div class="advantage-card"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='%23d8232a'%3E%3Cpath d='M18 8h2V4h-2v4zm-2 2H6V4h10v6zm-6 4h2v-2h-2v2zm4 0h2v-2h-2v2zm8-10v14H2V4h20zm-2 12H4v2h16v-2z'/%3E%3C/svg%3E" alt=""><h3>Своя доставка</h3><p>Оперативная доставка и разгрузка на объекте.</p></div>
+                <div class="advantage-card"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='%23d8232a'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z'/%3E%3C/svg%3E" alt=""><h3>Сертификаты</h3><p>Вся продукция имеет сертификаты соответствия.</p></div>
+                <div class="advantage-card"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='%23d8232a'%3E%3Cpath d='M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z'/%3E%3C/svg%3E" alt=""><h3>Всегда на связи</h3><p>Персональный менеджер 24/7.</p></div>
+                <div class="advantage-card"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='%23d8232a'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E" alt=""><h3>Бонусы и акции</h3><p>Каждую неделю специальные цены и подарки.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="reviews">
+        <div class="container">
+            <h2 class="section-title">Отзывы клиентов</h2>
+            <div class="review-grid">
+                <div class="review-card"><p>«Отличные пеноблоки, ровная геометрия, доставка день в день. Уже второй объект строим с ними»</p><div class="author">Иван Петров, Ростов-на-Дону</div></div>
+                <div class="review-card"><p>«Заказали газоблок на дом, привезли аккуратно, помогли с разгрузкой. Цена действительно ниже рынка»</p><div class="author">Семья Кузнецовых, Шахты</div></div>
+                <div class="review-card"><p>«Брали арматуру и ФБС для фундамента. Качество отличное, сертификаты предоставили»</p><div class="author">ООО «СтройГрад», Таганрог</div></div>
+            </div>
+            <h3 style="text-align:center; margin:40px 0 20px;">Видеоотзывы</h3>
+            <div class="video-reviews">
+                <div class="video-card"><iframe width="100%" height="200" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe></div>
+                <div class="video-card"><iframe width="100%" height="200" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="map-section">
+        <div class="container">
+            <h2 class="section-title">Наши склады и пункты отгрузки</h2>
+            <div id="map"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>ООО «Ростов Холдинг» | ИНН 6168000001 | ОГРН 1234567890123</p>
+            <p><a href="#" onclick="openPolicy(event)">Политика конфиденциальности</a></p>
+            <p style="margin-top:10px;">© 2025 Ростов Холдинг. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Спецпредложение (акционная форма) -->
+    <div class="popup" id="popupSpecial">
+        <span class="close-btn" onclick="closeSpecialPopup()">&times;</span>
+        <h3>🎁 Специальное предложение!</h3>
+        <p>Оставьте заявку сейчас и получите <strong>Клей в подарок</strong> к любому заказу блоков!</p>
+        <form id="specialForm" onsubmit="return sendSpecialTelegram(event)">
+            <input type="hidden" name="productName" id="specialProductName">
+            <input type="text" name="name" placeholder="Ваше имя" required style="width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
+            <input type="tel" name="phone" placeholder="Телефон" required style="width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
+            <button type="submit" class="btn" style="width:100%;">Получить подарок</button>
+        </form>
+    </div>
+
+    <!-- Обычная заявка (для неакционных товаров и с плавающей кнопки) -->
+    <div class="popup" id="popupSimple">
+        <span class="close-btn" onclick="closeSimplePopup()">&times;</span>
+        <h3>Оставить заявку</h3>
+        <p>Заполните данные, и наш менеджер свяжется с вами.</p>
+        <form id="simpleForm" onsubmit="return sendSimpleTelegram(event)">
+            <input type="hidden" name="productName" id="simpleProductName">
+            <input type="text" name="name" placeholder="Ваше имя" required style="width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
+            <input type="tel" name="phone" placeholder="Телефон" required style="width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
+            <button type="submit" class="btn" style="width:100%;">Отправить заявку</button>
+        </form>
+    </div>
+
+    <div class="overlay" id="detailOverlay"></div>
+    <div class="popup" id="detailModal">
+        <span class="close-btn" onclick="closeDetail()">&times;</span>
+        <div id="detailContent"></div>
+    </div>
+
+    <div class="floating-btn" id="floatingBtn">✏️</div>
+    <div class="floating-options" id="floatingOptions" style="display:none;">
+        <a href="#" onclick="openSimpleForm(event)">📝 Оставить заявку</a>
+        <a href="tel:+78005553535">📞 Позвонить</a>
+    </div>
+
+    <div class="popup" id="policyModal">
+        <span class="close-btn" onclick="closePolicy()">&times;</span>
+        <h2>Политика конфиденциальности</h2>
+        <p>Мы собираем только необходимые персональные данные (имя, телефон) с вашего согласия для обработки заявок. Данные не передаются третьим лицам. Вы можете в любое время запросить их удаление, написав нам на info@rostov-holding.com.</p>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const products = [
+            { 
+                name: 'Газоблок', 
+                img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5k2nf-MpiCDZdlj1F0IMKhQzf2j-Rz8Y_rQ&s', 
+                oldPrice: '', 
+                newPrice: 'от 4600₽/м³', 
+                desc: `Стандартные размеры (мм): 625х300х250, 625х100х250, 625х400х250.\nВ кубе: 625х300х250 ≈ 21 шт. (поддон 42 шт.), 625х100х250 ≈ 64 шт. (поддон 128 шт.), 625х400х250 = 16 шт. (поддон 32 шт.).\nПреимущества: высокая теплоизоляция, идеальная геометрия, лёгкий вес, пожаробезопасность, отличная паропроницаемость.` 
+            },
+            { 
+                name: 'Пеноблок', 
+                img: 'https://stroi-lavka.ru/images/stories/virtuemart/product/-508.jpg', 
+                oldPrice: '', 
+                newPrice: 'от 3300₽/м³', 
+                desc: `Стандартные размеры (мм): 588х300х188, 588х100х188, 588х300х400.\nВ кубе: 588х300х188 ≈ 30 шт. (поддон 60 шт.), 588х100х188 ≈ 91 шт. (поддон 180 шт.), 588х300х400 ≈ 14 шт. (поддон 28 шт.).\nПлюсы: хорошая звукоизоляция, экономичность, простота кладки, морозостойкость F50-F75, негорючесть.` 
+            },
+            { 
+                name: 'Полистиролбетонный блок', 
+                img: 'https://www.blokprom.ru/content/polistirolbeton.png', 
+                oldPrice: '', 
+                newPrice: 'от 5500₽/м³', 
+                desc: `Стандартные размеры (мм): 588х300х380 и 588х300х188.\nВ кубе: 588х300х380 ≈ 15 шт. (поддон 30 шт.), 588х300х188 ≈ 30 шт. (поддон 60 шт.).\nКлючевые качества: самая низкая теплопроводность, энергоэффективность, влагостойкость, высокая морозостойкость F100, устойчивость к плесени.` 
+            },
+            { 
+                name: 'Керамзитоблок', 
+                img: 'https://72snab.ru/wp-content/uploads/2019/05/1-2-scaled.jpg', 
+                oldPrice: '', 
+                newPrice: 'от 4200₽/м³', 
+                desc: `Стандартные размеры (мм): 390х190х188 и 390х120х188.\nВ кубе: 390х190х188 ≈ 72 шт. (поддон 144 шт.), 390х120х188 ≈ 114 шт. (поддон 228 шт.).\nДостоинства: высокая прочность, долговечность, отличная шумоизоляция, морозостойкость F50-F100, экологичность.` 
+            },
+            { 
+                name: 'Шлакоблок', 
+                img: 'https://gbichel74.ru/wp-content/uploads/2019/08/%D0%9A%D0%B5%D1%80%D0%B0%D0%BC%D0%B7%D0%B8%D1%82%D0%BD%D1%8B%D0%B9-800x550.png', 
+                oldPrice: '', 
+                newPrice: 'от 3000₽/м³', 
+                desc: `Стандартные размеры (мм): 390х190х188 и 390х120х188.\nВ кубе: 390х190х188 ≈ 72 шт. (поддон 144 шт.), 390х120х188 ≈ 114 шт. (поддон 228 шт.).\nПреимущества: доступная цена, хорошая несущая способность, быстрая кладка, стойкость к перепадам температур, неплохая звукоизоляция.` 
+            },
+            { 
+                name: 'Арболит', 
+                img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJARe3CuuBhKCDpSzihaSahQlpsrpycVDqmA&s', 
+                oldPrice: '', 
+                newPrice: 'от 4400₽/м³', 
+                desc: `Стандартные размеры (мм): 500х300х200, 600х300х200, 500х120х200, 600х120х200.\nВ кубе: 500х300х200 ≈ 33 шт. (поддон 66 шт.), 600х300х200 ≈ 28 шт. (поддон 56 шт.), 500х120х200 ≈ 83 шт. (поддон 166 шт.), 600х120х200 ≈ 69 шт. (поддон 138 шт.).\nОсобенности: экологичность (древесная щепа), «дышащие» стены, высокая теплоизоляция, трещиностойкость, простота обработки.` 
+            },
+            { 
+                name: 'ФБС', 
+                img: 'https://72snab.ru/wp-content/uploads/2020/04/12.3.6.jpg', 
+                oldPrice: '', 
+                newPrice: 'от 900₽/шт', 
+                desc: `Фундаментные блоки сплошные для сборных ленточных фундаментов. В наличии популярные размеры: 9.6.3, 24.4.6, 12.4.5, а также другие типоразмеры. Точное наличие, размеры и цены уточняйте у менеджера.` 
+            },
+            { 
+                name: 'Клей', 
+                img: 'https://i.postimg.cc/cHwGZDCz/902-original-fotor-bg-remover-2026042917374.png', 
+                oldPrice: '', 
+                newPrice: 'от 380₽/м³', 
+                desc: 'Специальный клей для газобетона, расход 25 кг на 1 м³.' 
+            },
+            { 
+                name: 'Арматура', 
+                img: 'https://www.stroymetall.ru/upload/iblock/0da/0daf18d99c5bbddf095f0353f11b1ed3.png', 
+                oldPrice: '', 
+                newPrice: 'от 48000₽/тн', 
+                desc: 'Стальная арматура А500С диаметром 10–32 мм. Продаётся тоннами.' 
+            },
+        ];
+
+        const banners = [
+            { title: 'Пеноблок', old: '3800₽', new: '3300₽', img: 'https://74cement.ru/netcat_files/16/4/9_3.jpg' },
+            { title: 'Газоблок', old: '5700₽', new: '4600₽', img: 'https://www.komfort-sochi.ru/upload/dev2fun.imagecompress/webp/iblock/5fc/92580py1wt5qf69vyignhj888h0wxhen.webp' },
+            { title: 'Полистиролбетон', old: '6000₽', new: '5500₽', img: 'https://www.blokprom.ru/content/polistirolbeton.png' },
+        ];
+
+        let currentSlide = 0;
+        const slider = document.getElementById('bannerSlider');
+        const dotsContainer = document.getElementById('bannerDots');
+
+        function renderBanners() {
+            slider.innerHTML = banners.map((b, i) => {
+                let imgBlock = `<div class="banner-img-wrap"><img src="${b.img}" alt="${b.title}">`;
+                // Показываем красный кружок для всех трёх акционных товаров
+                if (b.title === 'Пеноблок' || b.title === 'Газоблок' || b.title === 'Полистиролбетон') {
+                    imgBlock += `<div class="banner-price-badge">${b.new}</div>`;
+                }
+                imgBlock += `</div>`;
+                return `
+                    <div class="banner-slide ${i === 0 ? 'active' : ''}">
+                        <div class="banner-content">
+                            <h2>${b.title}</h2>
+                            <span class="old-price">${b.old}/м³</span>
+                            <div class="new-price">${b.new}/м³</div>
+                            <span class="sticker">Акция недели</span>
+                        </div>
+                        ${imgBlock}
+                    </div>
+                `;
+            }).join('');
+            dotsContainer.innerHTML = banners.map((_, i) => `<span class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></span>`).join('');
+        }
+
+        function goToSlide(index) {
+            const slides = document.querySelectorAll('.banner-slide');
+            const dots = document.querySelectorAll('.dot');
+            if (slides.length === 0) return;
+            slides.forEach(s => s.classList.remove('active'));
+            dots.forEach(d => d.classList.remove('active'));
+            slides[index].classList.add('active');
+            dots[index].classList.add('active');
+            currentSlide = index;
+        }
+
+        function nextSlide() {
+            if (banners.length === 0) return;
+            currentSlide = (currentSlide + 1) % banners.length;
+            goToSlide(currentSlide);
+        }
+
+        function renderCatalog() {
+            document.getElementById('catalogGrid').innerHTML = products.map(p => {
+                const oldPriceHtml = p.oldPrice ? `<span class="old">${p.oldPrice}</span>` : '';
+                return `
+                    <div class="catalog-card" onclick="openDetail('${p.name}')">
+                        <img src="${p.img}" alt="${p.name}">
+                        <div class="catalog-card-body">
+                            <div>
+                                <h3>${p.name}</h3>
+                                <div class="price">${oldPriceHtml} ${p.newPrice}</div>
+                            </div>
+                            <button class="btn">Узнать подробнее</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Список товаров, участвующих в акции
+        const actionProducts = ['Пеноблок', 'Газоблок', 'Полистиролбетонный блок'];
+
+        function openDetail(name) {
+            const product = products.find(p => p.name === name);
+            if (!product) return;
+            const isAction = actionProducts.includes(product.name);
+            const buttonHtml = isAction 
+                ? `<button class="btn" onclick="openSpecialForm(event, '${product.name}')">Оставить заявку (Клей в подарок)</button>`
+                : `<button class="btn" onclick="openSimpleFormWithProduct(event, '${product.name}')">Оставить заявку</button>`;
+            document.getElementById('detailContent').innerHTML = `
+                <img src="${product.img}" style="width:100%; border-radius:12px; margin-bottom:15px;">
+                <h2>${product.name}</h2>
+                <p style="white-space: pre-wrap;">${product.desc}</p>
+                <div style="font-size:24px; color:var(--red); margin:15px 0;">Цена: ${product.newPrice}</div>
+                ${buttonHtml}
+            `;
+            document.getElementById('detailOverlay').classList.add('active');
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function closeDetail() {
+            document.getElementById('detailOverlay').classList.remove('active');
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        function openSpecialForm(e, productName) {
+            e.preventDefault();
+            closeDetail();
+            document.getElementById('specialProductName').value = productName || '';
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById('popupSpecial').classList.add('active');
+        }
+        function closeSpecialPopup() {
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('popupSpecial').classList.remove('active');
+        }
+
+        function openSimpleForm(e) {
+            e.preventDefault();
+            document.getElementById('simpleProductName').value = '';
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById('popupSimple').classList.add('active');
+        }
+        function openSimpleFormWithProduct(e, productName) {
+            e.preventDefault();
+            closeDetail();
+            document.getElementById('simpleProductName').value = productName || '';
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById('popupSimple').classList.add('active');
+        }
+        function closeSimplePopup() {
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('popupSimple').classList.remove('active');
+        }
+
+        function openPolicy(e) {
+            e.preventDefault();
+            document.getElementById('policyModal').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        }
+        function closePolicy() {
+            document.getElementById('policyModal').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        document.getElementById('overlay').addEventListener('click', () => {
+            closeSpecialPopup();
+            closeSimplePopup();
+            closePolicy();
+            closeDetail();
+        });
+
+        const floatBtn = document.getElementById('floatingBtn');
+        const floatOpts = document.getElementById('floatingOptions');
+        floatBtn.addEventListener('click', () => {
+            floatOpts.style.display = floatOpts.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        const TELEGRAM_TOKEN = '8778145159:AAEYwcIcJCu6OpNjAsn88DeTIRMNXZZ0Edo';
+        const CHAT_ID = '-5293634935';
+
+        async function sendToTelegram(name, phone, message) {
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'HTML' })
+                });
+                return response.ok;
+            } catch (err) {
+                console.error(err);
+                return false;
+            }
+        }
+
+        async function sendSpecialTelegram(e) {
+            e.preventDefault();
+            const form = e.target;
+            const name = form.name.value.trim();
+            const phone = form.phone.value.trim();
+            const productName = document.getElementById('specialProductName').value;
+            if (!name || !phone) return;
+            const msg = `📌 Заявка с акцией!\n📦 Товар: ${productName}\n👤 ${name}\n📞 ${phone}\n🔥 Клей в подарок`;
+            if (await sendToTelegram(name, phone, msg)) {
+                alert('Заявка отправлена! Менеджер свяжется.');
+                closeSpecialPopup();
+                form.reset();
+            } else {
+                alert('Ошибка. Позвоните 8 800 555-35-35');
+            }
+            return false;
+        }
+
+        async function sendSimpleTelegram(e) {
+            e.preventDefault();
+            const form = e.target;
+            const name = form.name.value.trim();
+            const phone = form.phone.value.trim();
+            const productName = document.getElementById('simpleProductName').value || 'не указан';
+            if (!name || !phone) return;
+            const msg = `📌 Новая заявка с сайта РостовХолдинг\n📦 Товар: ${productName}\n👤 ${name}\n📞 ${phone}`;
+            if (await sendToTelegram(name, phone, msg)) {
+                alert('Заявка отправлена! Менеджер свяжется.');
+                closeSimplePopup();
+                form.reset();
+            } else {
+                alert('Ошибка. Позвоните 8 800 555-35-35');
+            }
+            return false;
+        }
+
+        function initMap() {
+            const map = L.map('map').setView([47.250, 39.710], 9);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            const points = [
+                { lat: 47.250, lng: 39.710, name: 'Ростов-на-Дону (склад)' },
+                { lat: 47.7119, lng: 40.2083, name: 'Шахты' },
+                { lat: 48.320, lng: 40.270, name: 'Каменск-Шахтинский' },
+                { lat: 47.220, lng: 38.920, name: 'Таганрог' },
+                { lat: 48.000, lng: 39.780, name: 'Донецк (РФ)' },
+                { lat: 48.570, lng: 39.300, name: 'Луганск (РФ)' },
+            ];
+            points.forEach(p => {
+                L.marker([p.lat, p.lng]).addTo(map).bindPopup(`<b>${p.name}</b><br>Пункт отгрузки`);
+            });
+        }
+
+        renderBanners();
+        renderCatalog();
+        setInterval(nextSlide, 4000);
+        initMap();
+    </script>
+</body>
